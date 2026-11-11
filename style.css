@@ -1,0 +1,74 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+
+    justify-items: center;
+}
+
+.main-title {
+    text-align: center;
+    padding: 2rem;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(6, 100px);
+    grid-template-rows: repeat(6, 100px);
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+}
+
+.card {
+    height: 100px;
+    width: 100px;
+    background-color: lightgray;
+
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+}
+
+.selected {
+    background-color: lightblue;
+}
+
+.found {
+    background-color: green;
+}
+
+.error {
+    background-color: red;
+}
+
+.modal {
+    background-color: lightgray;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    transition: all 1s;
+}
+
+.hide {
+    display: none;
+}
+
+.covered {
+    color: transparent;
+}
+
+.buttons-section {
+    display: flex;
+    gap: 2rem;
+}
+
+.buttons-section button{
+    padding: 1rem;
+}
