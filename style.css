@@ -46,6 +46,10 @@ body {
     background-color: red;
 }
 
+.covered {
+    color: transparent;
+}
+
 .modal {
     background-color: lightgray;
     position: fixed;
@@ -58,10 +62,6 @@ body {
 
 .hide {
     display: none;
-}
-
-.covered {
-    color: transparent;
 }
 
 .buttons-section {

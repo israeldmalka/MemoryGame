@@ -1,16 +1,18 @@
 'use strict'
 
-var gBoard
+var board_numbers
+var board_statuses
 
 function onInit() {
     console.log('onInit()')
-    gBoard = createBoard()
+    initBoard()
     renderBoard()
 
-    console.log('board:', gBoard)
+    console.log('board_numbers:', board_numbers)
+    console.log('board_statuses:', board_statuses)
 }
 
-function createBoard() {
+function initBoard() {
     let boardSide = 6
     let totalCards = boardSide * boardSide // 36
     let biggestValue = totalCards / 2   // 18
@@ -24,35 +26,43 @@ function createBoard() {
         numbers.push(i)
     }
 
-    let board = []
+    board_numbers = []
+    board_statuses = []
     for (var i = 0; i < boardSide; i++) {
-        board[i] = []
+        board_numbers[i] = []
+        board_statuses[i] = []
         for (var j = 0; j < boardSide; j++) {
             // select a random number from the list of numbers
             // and put it in the board
             var randomIndex = getRandomIntInclusive(0, numbers.length - 1)
             var returnValue = numbers.splice(randomIndex, 1)
             var pickedNumber = returnValue[0]
-            board[i][j] = pickedNumber
+
+            board_numbers[i][j] = pickedNumber
+            board_statuses[i][j] = 'covered'
         }
     }
 
-    return board
+    // return board
 }
 
 function renderBoard() {
 
-    var html = ''
+    var htmlContent = ''
     var container = document.querySelector('.container')
 
-    for (var i = 0; i < gBoard.length; i++) {
-        for (var j = 0; j < gBoard.length; j++) {
-            var part = `<div class="card card-${i}-${j} covered" onclick="onClickCard(this)">${gBoard[i][j]}</div>`
-            html = html + part
+    for (var i = 0; i < board_numbers.length; i++) {
+        for (var j = 0; j < board_numbers.length; j++) {
+
+            var status = board_statuses[i][j]
+            var value = board_numbers[i][j]
+
+            var part = `<div class="card ${status}" onclick="onClickCard(this)" data-i="${i}" data-j="${j}" data-value="${value}">${value}</div>`
+            htmlContent += part
         }
     }
 
-    container.innerHTML = html
+    container.innerHTML = htmlContent
 }
 
 function getRandomIntInclusive(min, max) {
@@ -62,8 +72,6 @@ function getRandomIntInclusive(min, max) {
     // The maximum is inclusive and the minimum is inclusive
 }
 
-var firstCard = null
-
 function showModal(message) {
     var modal = document.querySelector('.modal')
     modal.innerText = message
@@ -71,85 +79,81 @@ function showModal(message) {
     setTimeout(() => { modal.classList.add('hide') }, 1000)
 }
 
+var firstCard = null
+
 function onClickCard(element) {
 
-    // clicking an already discovered card
-    if (element.classList.contains('found') ||
-        element.classList.contains('error')) {
-        showModal('That card was already discovered')
-        return
+    var i = element.dataset.i
+    var j = element.dataset.j
+    var status = board_statuses[i][j]
+
+    if (status !== 'covered') {
+        if (status === 'found' || status === 'error') {
+            showModal('Select a covered card')
+            return
+        }
+
+        if (status === 'selected') {
+            showModal('Unpick an already selected card')
+            firstCard = null
+            board_statuses[i][j] = 'covered'
+            renderBoard()
+            return
+        }
     }
 
     if (!firstCard) {
-        // picking the first card
-        firstCard = element
-        element.classList.remove('covered')
-        element.classList.add('selected')
         showModal('Picked the first card')
-        return
-    }
-
-    // clicked the same card again
-    if (firstCard === element) {
-        element.classList.remove('selected')
-        element.classList.add('covered')
-        firstCard = null
-        showModal('Unpicked the first card')
+        firstCard = element
+        board_statuses[i][j] = 'selected'
+        renderBoard()
         return
     }
 
     // picking the second card
     showModal('Picked the second card')
-    element.classList.remove('covered')
-    element.classList.add('selected')
+    board_statuses[i][j] = 'selected'
+    renderBoard()
 
-    if (element.innerText === firstCard.innerText) {
-        // correct
+    var firstCardI = firstCard.dataset.i
+    var firstCardJ = firstCard.dataset.j
+    var firstCardValue = firstCard.dataset.value
+
+    var secondCardI = element.dataset.i
+    var secondCardJ = element.dataset.j
+    var secondCardValue = element.dataset.value
+
+    if (secondCardValue === firstCardValue) {
 
         setTimeout(() => {
             showModal('Good catch!')
-
-            firstCard.classList.remove('selected')
-            element.classList.remove('selected')
-
-            firstCard.classList.add('found')
-            element.classList.add('found')
-
+            board_statuses[firstCardI][firstCardJ] = 'found'
+            board_statuses[secondCardI][secondCardJ] = 'found'
             firstCard = null
-
+            renderBoard()
             checkForWin()
-
         }, 1000)
 
         return
 
     } else {
-        // wrong choice
-
         setTimeout(() => {
-
             showModal('Wrong, no match!')
-
-            firstCard.classList.remove('selected')
-            element.classList.remove('selected')
-
-            firstCard.classList.add('error')
-            element.classList.add('error')
+            board_statuses[firstCardI][firstCardJ] = 'error'
+            board_statuses[secondCardI][secondCardJ] = 'error'
+            firstCard = null
+            renderBoard()
 
             setTimeout(() => {
                 showModal('Clearing selection')
-
-                firstCard.classList.remove('error')
-                element.classList.remove('error')
-
-                firstCard.classList.add('covered')
-                element.classList.add('covered')
-
+                board_statuses[firstCardI][firstCardJ] = 'covered'
+                board_statuses[secondCardI][secondCardJ] = 'covered'
                 firstCard = null
+                renderBoard()
+
             }, 1000)
         }, 1000)
     }
-
 }
 
 function checkForWin() {
